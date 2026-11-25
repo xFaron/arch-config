@@ -1,23 +1,28 @@
-# Top of file: use ALT in the VM so Mint doesn't swallow Super.
-# Change the existing modifier variable (default: $mainMod = SUPER).
-$mainMod = ALT
+-- ~/.config/hypr/hyprland.lua
+local terminal = "kitty"
+local mainMod  = "SUPER"
 
-general {
-    layout = master
-}
+hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" })
 
-master {
-    new_status = slave      # new windows stack beside the master
-    mfact = 0.6             # master takes 60%
-    orientation = left
-}
+hl.env("XCURSOR_SIZE", "24")
 
-exec-once = quickshell
-exec-once = spice-vdagent
+hl.on("hyprland.start", function()          -- replaces exec-once
+    hl.exec_cmd("waybar")
+end)
 
-# Keybinds (add to the existing ones)
-bind = $mainMod, Return, exec, kitty
-bind = $mainMod, Space, exec, fuzzel         # placeholder launcher, apps only
-bind = $mainMod, J, layoutmsg, cyclenext
-bind = $mainMod, K, layoutmsg, cycleprev
-bind = $mainMod SHIFT, Return, layoutmsg, swapwithmaster
+hl.config({
+    general    = { gaps_in = 5, gaps_out = 20, border_size = 2, layout = "dwindle" },
+    decoration = { rounding = 10 },
+    input      = { kb_layout = "us", follow_mouse = 1 },
+})
+
+hl.bind(mainMod .. " + Q", hl.dsp.exec_cmd(terminal))
+hl.bind(mainMod .. " + C", hl.dsp.window.close())
+
+for i = 1, 10 do                            -- Lua loops make workspace binds short
+    local key = i % 10
+    hl.bind(mainMod .. " + " .. key,         hl.dsp.focus({ workspace = i }))
+    hl.bind(mainMod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = i }))
+end
+
+hl.window_rule({ name = "no-maximize", match = { class = ".*" }, suppress_event = "maximize" })
